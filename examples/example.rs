@@ -6,7 +6,7 @@ use rustyline::highlight::{Highlighter, MatchingBracketHighlighter};
 use rustyline::hint::HistoryHinter;
 use rustyline::validate::MatchingBracketValidator;
 use rustyline::{Cmd, CompletionType, Config, EditMode, Editor, KeyEvent};
-use rustyline_derive::{Completer, Helper, Hinter, Validator};
+use rustyline::{Completer, Helper, Hinter, Validator};
 
 #[derive(Helper, Completer, Hinter, Validator)]
 struct MyHelper {
@@ -76,7 +76,7 @@ fn main() -> rustyline::Result<()> {
         let readline = rl.readline(&p);
         match readline {
             Ok(line) => {
-                rl.add_history_entry(line.as_str());
+                rl.add_history_entry(line.as_str())?;
                 println!("Line: {line}");
             }
             Err(ReadlineError::Interrupted) => {
