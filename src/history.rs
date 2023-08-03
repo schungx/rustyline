@@ -57,7 +57,7 @@ pub trait History {
 
     /// Return the history entry at position `index`, starting from 0.
     ///
-    /// `SearchDirection` is usefull only for implementations without direct
+    /// `SearchDirection` is useful only for implementations without direct
     /// indexing.
     fn get(&self, index: usize, dir: SearchDirection) -> Result<Option<SearchResult>>;
 
@@ -175,7 +175,6 @@ pub trait History {
 }
 
 /// Transient in-memory history implementation.
-#[derive(Default)]
 pub struct MemHistory {
     entries: VecDeque<String>,
     max_len: usize,
@@ -275,6 +274,12 @@ impl MemHistory {
             self.entries.pop_front();
         }
         self.entries.push_back(line);
+    }
+}
+
+impl Default for MemHistory {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
