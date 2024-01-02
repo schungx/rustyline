@@ -151,7 +151,7 @@ fn complete_line<H: Helper>(
     } else if CompletionType::List == config.completion_type() {
         if let Some(lcp) = longest_common_prefix(&candidates) {
             // if we can extend the item, extend it
-            if lcp.len() > s.line.pos() - start {
+            if lcp.len() > s.line.pos() - start || candidates.len() == 1 {
                 completer.update(&mut s.line, start, lcp, &mut s.changes);
                 s.refresh_line()?;
             }
@@ -238,7 +238,7 @@ fn complete_line<H: Helper>(
 
                 let selected_items = Skim::run_with(&options, Some(rx_item))
                     .map(|out| out.selected_items)
-                    .unwrap_or_else(Vec::new);
+                    .unwrap_or_default();
 
                 // match the first (and only) returned option with the candidate and update the
                 // line otherwise only refresh line to clear the skim UI changes
@@ -787,7 +787,9 @@ impl<H: Helper, I: History> Editor<H, I> {
 
         // Move to end, in case cursor was in the middle of the line, so that
         // next thing application prints goes after the input
+        s.forced_refresh = true;
         s.edit_move_buffer_end()?;
+        s.forced_refresh = false;
 
         if cfg!(windows) {
             let _ = original_mode; // silent warning
@@ -914,6 +916,14 @@ impl<H: Helper, I: History> Editor<H, I> {
     /// Create an external printer
     pub fn create_external_printer(&mut self) -> Result<<Terminal as Term>::ExternalPrinter> {
         self.term.create_external_printer()
+    }
+
+    /// Change cursor visibility
+    pub fn set_cursor_visibility(
+        &mut self,
+        visible: bool,
+    ) -> Result<Option<<Terminal as Term>::CursorGuard>> {
+        self.term.set_cursor_visibility(visible)
     }
 }
 

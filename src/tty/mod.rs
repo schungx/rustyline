@@ -220,6 +220,7 @@ pub trait Term {
     type Writer: Renderer<Reader = Self::Reader>; // rl_outstream
     type Mode: RawMode;
     type ExternalPrinter: ExternalPrinter;
+    type CursorGuard;
 
     fn new(
         color_mode: ColorMode,
@@ -246,20 +247,22 @@ pub trait Term {
     fn writeln(&self) -> Result<()>;
     /// Create an external printer
     fn create_external_printer(&mut self) -> Result<Self::ExternalPrinter>;
+    /// Change cursor visibility
+    fn set_cursor_visibility(&mut self, visible: bool) -> Result<Option<Self::CursorGuard>>;
 }
 
 // If on Windows platform import Windows TTY module
 // and re-export into mod.rs scope
 #[cfg(all(windows, not(target_arch = "wasm32")))]
 mod windows;
-#[cfg(all(windows, not(target_arch = "wasm32")))]
+#[cfg(all(windows, not(target_arch = "wasm32"), not(test)))]
 pub use self::windows::*;
 
 // If on Unix platform import Unix TTY module
 // and re-export into mod.rs scope
 #[cfg(all(unix, not(target_arch = "wasm32")))]
 mod unix;
-#[cfg(all(unix, not(target_arch = "wasm32")))]
+#[cfg(all(unix, not(target_arch = "wasm32"), not(test)))]
 pub use self::unix::*;
 
 #[cfg(any(test, target_arch = "wasm32"))]
