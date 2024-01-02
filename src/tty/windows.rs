@@ -292,14 +292,12 @@ fn read_input(handle: HANDLE, max_count: u32, enable_bracketed_paste: bool) -> R
         if enable_bracketed_paste {
             let esc_processing = if !esc.is_processing() && key == KeyEvent(K::Esc, M::NONE) {
                 // Check if it is a stand-alone Escape
-                check(unsafe { consoleapi::GetNumberOfConsoleInputEvents(handle, &mut count) })?;
+                check(unsafe { console::GetNumberOfConsoleInputEvents(handle, &mut count) })?;
                 if count > 0 {
-                    check(unsafe {
-                        consoleapi::PeekConsoleInputA(handle, &mut rec, 1, &mut count)
-                    })?;
+                    check(unsafe { console::PeekConsoleInputA(handle, &mut rec, 1, &mut count) })?;
 
-                    if count > 0 && rec.EventType == wincon::KEY_EVENT {
-                        let key_event = unsafe { rec.Event.KeyEvent() };
+                    if count > 0 && u32::from(rec.EventType) == console::KEY_EVENT {
+                        let key_event = unsafe { rec.Event.KeyEvent };
                         // It is a stand-alone Escape if the next event is key-up of that Esc key!
                         key_event.bKeyDown != 0 || key_event.wVirtualKeyCode != 0x1b
                     } else {
@@ -830,7 +828,7 @@ impl Term for Console {
                 debug!(target: "rustyline", "ansi_colors_supported: {}", self.ansi_colors_supported);
             }
             if self.ansi_colors_supported && self.enable_bracketed_paste {
-                raw |= wincon::ENABLE_VIRTUAL_TERMINAL_INPUT;
+                raw |= console::ENABLE_VIRTUAL_TERMINAL_INPUT;
                 write_all(self.conout, escape::BRACKETED_PASTE_ON)?;
                 debug!(target: "rustyline", "Turned bracketed paste on");
             }
@@ -845,7 +843,7 @@ impl Term for Console {
             self.pipe_writer = None;
             self.pipe_reader = None;
         }
-        check(unsafe { consoleapi::SetConsoleMode(self.conin, raw) })?;
+        check(unsafe { console::SetConsoleMode(self.conin, raw) })?;
 
         Ok((
             ConsoleMode {
